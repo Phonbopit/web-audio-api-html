@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Audio API Sound Examples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        h1, h2 {
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .sound-category {
+            background: rgba(255,255,255,0.1);
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .sound-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .sound-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .sound-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .sound-button:active {
+            transform: translateY(0);
+        }
+        
+        .code-section {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        pre {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .slider-control {
+            margin: 10px 0;
+        }
+        
+        .slider-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        .oscillator-types {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        
+        .wave-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .wave-button.active {
+            background: rgba(255,255,255,0.4);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 Web Audio API - createOscillator Examples</h1>
+    
+    <div class="sound-category">
+        <h2>1. พื้นฐาน - Oscillator Types (รูปคลื่น)</h2>
+        <p>มี 4 ประเภทหลัก:</p>
+        <div class="sound-grid">
+            <button class="sound-button" onclick="playBasicSound('sine', 440, 0.5)">🌊 Sine Wave<br>(เสียงนุ่ม)</button>
+            <button class="sound-button" onclick="playBasicSound('square', 440, 0.5)">📱 Square Wave<br>(เสียงดิจิตอล)</button>
+            <button class="sound-button" onclick="playBasicSound('sawtooth', 440, 0.5)">🪚 Sawtooth Wave<br>(เสียงแหลม)</button>
+            <button class="sound-button" onclick="playBasicSound('triangle', 440, 0.5)">🔺 Triangle Wave<br>(เสียงอ่อน)</button>
+        </div>
+        
+        <div class="code-section">
+            <h3>โค้ดพื้นฐาน:</h3>
+            <pre><code>function playBasicSound(type, frequency, duration) {
+    const audioContext = new AudioContext();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    // เชื่อมต่อ nodes
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // กำหนดค่า
+    oscillator.type = type;           // 'sine', 'square', 'sawtooth', 'triangle'
+    oscillator.frequency.value = frequency;  // ความถี่ (Hz)
+    gainNode.gain.value = 0.1;      // ความดัง
+    
+    // เล่นเสียง
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + duration);
+}</code></pre>
+        </div>
+    </div>
+    
+    <div class="sound-category">
+        <h2>2. เสียงเกม (Game Sounds)</h2>
+        <div class="sound-grid">
+            <button class="sound-button" onclick="playGameSound('coin')">🪙 เก็บเหรียญ</button>
+            <button class="sound-button" onclick="playGameSound('jump')">🦘 กระโดด</button>
+            <button class="sound-button" onclick="playGameSound('powerup')">⭐ Power-up</button>
+            <button class="sound-button" onclick="playGameSound('gameover')">💀 Game Over</button>
+            <button class="sound-button" onclick="playGameSound('shoot')">🔫 ยิง</button>
+            <button class="sound-button" onclick="playGameSound('explosion')">💥 ระเบิด</button>
+        </div>
+        
+        <div class="code-section">
+            <h3>เสียงเกมตัวอย่าง:</h3>
+            <pre><code>function playGameSound(type) {
+    const audioContext = new AudioContext();
+    
+    switch(type) {
+        case 'coin':
+            // เสียงเก็บเหรียญ - โน้ตขึ้น
+            playSequence([523, 659], [0.1, 0.1], 'triangle');
+            break;
+            
+        case 'jump':
+            // เสียงกระโดด - ความถี่ขึ้นเร็ว
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(200, audioContext.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            osc.start();
+            osc.stop(audioContext.currentTime + 0.2);
+            break;
+            
+        case 'powerup':
+            // เสียง power-up - melody ขึ้น
+            playSequence([262, 330, 392, 523], [0.1, 0.1, 0.1, 0.3], 'triangle');
+            break;
+    }
+}</code></pre>
+        </div>
+    </div>
+    
+    <div class="sound-category">
+        <h2>3. Custom Sound Builder</h2>
+        <p>สร้างเสียงแบบกำหนดเอง:</p>
+        
+        <div class="oscillator-types">
+            <span>Wave Type:</span>
+            <button class="wave-button active" onclick="setWaveType('sine')">Sine</button>
+            <button class="wave-button" onclick="setWaveType('square')">Square</button>
+            <button class="wave-button" onclick="setWaveType('sawtooth')">Sawtooth</button>
+            <button class="wave-button" onclick="setWaveType('triangle')">Triangle</button>
+        </div>
+        
+        <div class="slider-control">
+            <label>Frequency (ความถี่): <span id="freqValue">440</span> Hz</label>
+            <input type="range" id="frequency" min="80" max="2000" value="440" oninput="updateFreq()">
+        </div>
+        
+        <div class="slider-control">
+            <label>Duration (ระยะเวลา): <span id="durValue">0.5</span> วินาที</label>
+            <input type="range" id="duration" min="0.1" max="3" step="0.1" value="0.5" oninput="updateDur()">
+        </div>
+        
+        <div class="slider-control">
+            <label>Volume (ความดัง): <span id="volValue">10</span>%</label>
+            <input type="range" id="volume" min="1" max="30" value="10" oninput="updateVol()">
+        </div>
+        
+        <button class="sound-button" onclick="playCustomSound()" style="width: 100%; margin-top: 15px;">
+            🎵 เล่นเสียงที่กำหนดเอง
+        </button>
+    </div>
+    
+    <div class="sound-category">
+        <h2>4. เสียงดนตรี (Musical Notes)</h2>
+        <p>โน้ตเพลงมาตรฐาน:</p>
+        <div class="sound-grid">
+            <button class="sound-button" onclick="playNote('C', 4)">🎵 C4 (Do)</button>
+            <button class="sound-button" onclick="playNote('D', 4)">🎵 D4 (Re)</button>
+            <button class="sound-button" onclick="playNote('E', 4)">🎵 E4 (Mi)</button>
+            <button class="sound-button" onclick="playNote('F', 4)">🎵 F4 (Fa)</button>
+            <button class="sound-button" onclick="playNote('G', 4)">🎵 G4 (Sol)</button>
+            <button class="sound-button" onclick="playNote('A', 4)">🎵 A4 (La)</button>
+            <button class="sound-button" onclick="playNote('B', 4)">🎵 B4 (Ti)</button>
+            <button class="sound-button" onclick="playNote('C', 5)">🎵 C5 (Do)</button>
+        </div>
+        
+        <div style="margin-top: 15px;">
+            <button class="sound-button" onclick="playMelody()" style="background: linear-gradient(45deg, #FF6B6B, #ee5a6f);">
+                🎶 เล่นเพลง "Twinkle Twinkle Little Star"
+            </button>
+        </div>
+    </div>
+    
+    <div class="sound-category">
+        <h2>5. เอฟเฟกต์พิเศษ (Special Effects)</h2>
+        <div class="sound-grid">
+            <button class="sound-button" onclick="playEffect('siren')">🚨 ไซเรน</button>
+            <button class="sound-button" onclick="playEffect('robot')">🤖 เสียงหุ่นยนต์</button>
+            <button class="sound-button" onclick="playEffect('laser')">⚡ เลเซอร์</button>
+            <button class="sound-button" onclick="playEffect('alien')">👽 เอเลี่ยน</button>
+            <button class="sound-button" onclick="playEffect('helicopter')">🚁 เฮลิคอปเตอร์</button>
+            <button class="sound-button" onclick="playEffect('telephone')">📞 โทรศัพท์</button>
+        </div>
+    </div>
+    
+    <div class="sound-category">
+        <h2>💡 ข้อมูลเพิ่มเติม</h2>
+        <div class="code-section">
+            <h3>จำนวนเสียงที่สร้างได้:</h3>
+            <ul>
+                <li><strong>ไม่จำกัด!</strong> - สามารถสร้างได้มากเท่าที่ต้องการ</li>
+                <li><strong>ความถี่:</strong> 20Hz - 20,000Hz (ช่วงการได้ยินของมนุษย์)</li>
+                <li><strong>รูปคลื่น:</strong> 4 แบบพื้นฐาน + custom waveform</li>
+                <li><strong>Effects:</strong> เพิ่มได้ด้วย gainNode, filter, delay, reverb</li>
+            </ul>
+            
+            <h3>ตัวอย่างโค้ดครบถ้วน:</h3>
+            <pre><code>class SoundGenerator {
+    constructor() {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    // เสียงพื้นฐาน
+    playTone(frequency, duration, type = 'sine', volume = 0.1) {
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = type;
+        gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+        
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + duration);
+    }
+    
+    // เสียงที่เปลี่ยนความถี่
+    sweep(startFreq, endFreq, duration, type = 'sine') {
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(startFreq, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(endFreq, this.audioContext.currentTime + duration);
+        
+        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+        
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + duration);
+    }
+}
+
+// การใช้งาน
+const sound = new SoundGenerator();
+sound.playTone(440, 1.0, 'sine');  // เล่น A4 นาน 1 วินาที</code></pre>
+        </div>
+    </div>
+
+    <script>
+        let audioContext;
+        let currentWaveType = 'sine';
+        
+        // Initialize Audio Context
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        // Basic sound function
+        function playBasicSound(type, frequency, duration) {
+            initAudio();
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = type;
+            oscillator.frequency.value = frequency;
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // Game sounds
+        function playGameSound(type) {
+            initAudio();
+            
+            switch(type) {
+                case 'coin':
+                    playSequence([523, 659], [0.1, 0.1], 'triangle');
+                    break;
+                    
+                case 'jump':
+                    const osc1 = audioContext.createOscillator();
+                    const gain1 = audioContext.createGain();
+                    osc1.connect(gain1);
+                    gain1.connect(audioContext.destination);
+                    
+                    osc1.type = 'square';
+                    osc1.frequency.setValueAtTime(200, audioContext.currentTime);
+                    osc1.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+                    gain1.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    
+                    osc1.start();
+                    osc1.stop(audioContext.currentTime + 0.2);
+                    break;
+                    
+                case 'powerup':
+                    playSequence([262, 330, 392, 523], [0.1, 0.1, 0.1, 0.3], 'triangle');
+                    break;
+                    
+                case 'gameover':
+                    playSequence([523, 494, 466, 440, 415, 392], [0.15, 0.15, 0.15, 0.15, 0.15, 0.5], 'sawtooth');
+                    break;
+                    
+                case 'shoot':
+                    const osc2 = audioContext.createOscillator();
+                    const gain2 = audioContext.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(audioContext.destination);
+                    
+                    osc2.type = 'sawtooth';
+                    osc2.frequency.setValueAtTime(800, audioContext.currentTime);
+                    osc2.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.1);
+                    gain2.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    
+                    osc2.start();
+                    osc2.stop(audioContext.currentTime + 0.1);
+                    break;
+                    
+                case 'explosion':
+                    // White noise explosion
+                    const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 0.5, audioContext.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < data.length; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                    
+                    const source = audioContext.createBufferSource();
+                    const gain3 = audioContext.createGain();
+                    const filter = audioContext.createBiquadFilter();
+                    
+                    source.buffer = buffer;
+                    source.connect(filter);
+                    filter.connect(gain3);
+                    gain3.connect(audioContext.destination);
+                    
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(2000, audioContext.currentTime);
+                    filter.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.5);
+                    
+                    gain3.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    
+                    source.start();
+                    break;
+            }
+        }
+        
+        // Play sequence of notes
+        function playSequence(frequencies, durations, type = 'sine') {
+            let time = audioContext.currentTime;
+            
+            frequencies.forEach((freq, index) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.type = type;
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0.1, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + durations[index]);
+                
+                osc.start(time);
+                osc.stop(time + durations[index]);
+                
+                time += durations[index];
+            });
+        }
+        
+        // Musical notes
+        const noteFrequencies = {
+            'C': [65.41, 130.81, 261.63, 523.25, 1046.50],
+            'D': [73.42, 146.83, 293.66, 587.33, 1174.66],
+            'E': [82.41, 164.81, 329.63, 659.25, 1318.51],
+            'F': [87.31, 174.61, 349.23, 698.46, 1396.91],
+            'G': [98.00, 196.00, 392.00, 783.99, 1567.98],
+            'A': [110.00, 220.00, 440.00, 880.00, 1760.00],
+            'B': [123.47, 246.94, 493.88, 987.77, 1975.53]
+        };
+        
+        function playNote(note, octave) {
+            initAudio();
+            const frequency = noteFrequencies[note][octave - 1];
+            playBasicSound('triangle', frequency, 0.5);
+        }
+        
+        // Play melody
+        function playMelody() {
+            initAudio();
+            
+            const melody = [
+                {note: 'C', octave: 4, duration: 0.5},
+                {note: 'C', octave: 4, duration: 0.5},
+                {note: 'G', octave: 4, duration: 0.5},
+                {note: 'G', octave: 4, duration: 0.5},
+                {note: 'A', octave: 4, duration: 0.5},
+                {note: 'A', octave: 4, duration: 0.5},
+                {note: 'G', octave: 4, duration: 1.0},
+                {note: 'F', octave: 4, duration: 0.5},
+                {note: 'F', octave: 4, duration: 0.5},
+                {note: 'E', octave: 4, duration: 0.5},
+                {note: 'E', octave: 4, duration: 0.5},
+                {note: 'D', octave: 4, duration: 0.5},
+                {note: 'D', octave: 4, duration: 0.5},
+                {note: 'C', octave: 4, duration: 1.0}
+            ];
+            
+            let time = audioContext.currentTime + 0.1;
+            
+            melody.forEach(({note, octave, duration}) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.type = 'triangle';
+                osc.frequency.value = noteFrequencies[note][octave - 1];
+                gain.gain.setValueAtTime(0.1, time);
+                gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+                
+                osc.start(time);
+                osc.stop(time + duration);
+                
+                time += duration;
+            });
+        }
+        
+        // Special effects
+        function playEffect(type) {
+            initAudio();
+            
+            switch(type) {
+                case 'siren':
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            const osc = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            osc.connect(gain);
+                            gain.connect(audioContext.destination);
+                            
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(800, audioContext.currentTime);
+                            osc.frequency.linearRampToValueAtTime(400, audioContext.currentTime + 0.5);
+                            osc.frequency.linearRampToValueAtTime(800, audioContext.currentTime + 1);
+                            
+                            gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+                            
+                            osc.start();
+                            osc.stop(audioContext.currentTime + 1);
+                        }, i * 1000);
+                    }
+                    break;
+                    
+                case 'robot':
+                    const frequencies = [100, 150, 120, 180, 90];
+                    let time = audioContext.currentTime;
+                    
+                    frequencies.forEach(freq => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        
+                        osc.type = 'square';
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.1, time);
+                        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
+                        
+                        osc.start(time);
+                        osc.stop(time + 0.2);
+                        
+                        time += 0.15;
+                    });
+                    break;
+                    
+                case 'laser':
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(1000, audioContext.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(50, audioContext.currentTime + 0.3);
+                    
+                    gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    
+                    osc.start();
+                    osc.stop(audioContext.currentTime + 0.3);
+                    break;
+                    
+                case 'alien':
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            const osc = audioContext.createOscillator();
+                            const gain = audioContext.createGain();
+                            osc.connect(gain);
+                            gain.connect(audioContext.destination);
+                            
+                            osc.type = 'triangle';
+                            const freq = 200 + Math.random() * 400;
+                            osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+                            osc.frequency.exponentialRampToValueAtTime(freq * 0.5, audioContext.currentTime + 0.1);
+                            
+                            gain.gain.setValueAtTime(0.05, audioContext.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                            
+                            osc.start();
+                            osc.stop(audioContext.currentTime + 0.1);
+                        }, i * 100);
+                    }
+                    break;
+                    
+                case 'helicopter':
+                    const osc1 = audioContext.createOscillator();
+                    const gain1 = audioContext.createGain();
+                    osc1.connect(gain1);
+                    gain1.connect(audioContext.destination);
+                    
+                    osc1.type = 'sawtooth';
+                    osc1.frequency.setValueAtTime(80, audioContext.currentTime);
+                    
+                    // Modulate frequency for helicopter effect
+                    const lfo = audioContext.createOscillator();
+                    const lfoGain = audioContext.createGain();
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(osc1.frequency);
+                    
+                    lfo.frequency.value = 10;
+                    lfoGain.gain.value = 20;
+                    
+                    gain1.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 2);
+                    
+                    lfo.start();
+                    osc1.start();
+                    lfo.stop(audioContext.currentTime + 2);
+                    osc1.stop(audioContext.currentTime + 2);
+                    break;
+                    
+                case 'telephone':
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            playSequence([800, 600], [0.3, 0.3], 'sine');
+                        }, i * 1000);
+                    }
+                    break;
+            }
+        }
+        
+        // Custom sound builder
+        function setWaveType(type) {
+            currentWaveType = type;
+            document.querySelectorAll('.wave-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function updateFreq() {
+            document.getElementById('freqValue').textContent = document.getElementById('frequency').value;
+        }
+        
+        function updateDur() {
+            document.getElementById('durValue').textContent = document.getElementById('duration').value;
+        }
+        
+        function updateVol() {
+            document.getElementById('volValue').textContent = document.getElementById('volume').value;
+        }
+        
+        function playCustomSound() {
+            initAudio();
+            
+            const freq = parseFloat(document.getElementById('frequency').value);
+            const dur = parseFloat(document.getElementById('duration').value);
+            const vol = parseFloat(document.getElementById('volume').value) / 100;
+            
+            playBasicSound(currentWaveType, freq, dur);
+        }
+    </script>
+</body>
+</html>
